@@ -16,13 +16,44 @@
 
 Because Edge AI operates in untrusted physical environments (factory floors, warehouses), we assume a **Zero Trust Architecture**. This service strictly validates hardware credentials, issues short-lived JWT tokens for Edge Agents, and securely vaults API Keys for Cloud Control Planes (like `edge-management`).
 
-👉 **[View the Detailed Architecture, HLD, and LLD in the Documentation](docs/architecture.md)**
+👉 **[View the Detailed LLD and Zero Trust Execution Flow in the Documentation](docs/architecture.md)**
 
 ---
 
-## 2. Core Capabilities
+## 2. High-Level Architecture (HLD)
 
-### 2.1 Edge Node Authentication (JWT Issuance)
+<div align="center">
+  <img src="docs/architecture.jpg" alt="Edge Security Architecture" width="800">
+</div>
+
+The system establishes trust through strict cryptographic boundaries.
+
+```mermaid
+graph TD
+    classDef highContrast fill:#f4f4f4,stroke:#333,stroke-width:2px,color:#000000;
+    
+    Cloud[Cloud Fleet Management]:::highContrast
+    Security[Zero Trust Policy Engine & IdP]:::highContrast
+    Vault[(PostgreSQL Secrets Vault)]:::highContrast
+    
+    FactoryA[Factory A - Edge Nodes]:::highContrast
+    FactoryB[Factory B - Edge Nodes]:::highContrast
+    
+    Cloud -->|1. Validates API Key| Security
+    Security <-->|2. Reads/Writes Hashes| Vault
+    
+    FactoryA -->|3. Exchanges Hardware Secret| Security
+    Security -->|4. Issues JWT Token| FactoryA
+    
+    FactoryB -->|3. Exchanges Hardware Secret| Security
+    Security -->|4. Issues JWT Token| FactoryB
+```
+
+---
+
+## 3. Core Capabilities
+
+### 3.1 Edge Node Authentication (JWT Issuance)
 When a physical Edge Node boots up, it exchanges its burned-in hardware secret for a short-lived JWT.
 ```bash
 curl -X POST http://localhost:8001/api/v1/auth/token \
@@ -33,7 +64,7 @@ curl -X POST http://localhost:8001/api/v1/auth/token \
   }'
 ```
 
-### 2.2 Token Verification (Policy Decision Point)
+### 3.2 Token Verification (Policy Decision Point)
 Cloud APIs call this endpoint to verify that an Edge Node's JWT is valid and untampered.
 ```bash
 curl -X POST http://localhost:8001/api/v1/auth/verify \
@@ -43,7 +74,7 @@ curl -X POST http://localhost:8001/api/v1/auth/verify \
   }'
 ```
 
-### 2.3 Cloud API Key Vault Generation
+### 3.3 Cloud API Key Vault Generation
 Generates a highly secure, 32-byte API key for cloud microservices. The raw key is returned exactly once, and a strict `bcrypt` hash is stored in the database.
 ```bash
 curl -X POST http://localhost:8001/api/v1/keys/generate \
@@ -56,7 +87,7 @@ curl -X POST http://localhost:8001/api/v1/keys/generate \
 
 ---
 
-## 3. Deployment
+## 4. Deployment
 
 Start the Zero Trust Gateway and the secure Vault database:
 ```bash
