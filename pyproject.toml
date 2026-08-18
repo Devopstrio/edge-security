@@ -29,6 +29,7 @@ dev = [
     "ruff>=0.4.10",
     "mypy>=1.10.0",
     "httpx",
+    "types-passlib",
 ]
 
 [tool.hatch.build.targets.wheel]

@@ -33,7 +33,7 @@ async def issue_token(req: TokenCreateRequest, db: AsyncSession = Depends(get_db
     result = await db.execute(select(EdgeNodeSecret).where(EdgeNodeSecret.node_id == req.node_id))
     node = result.scalars().first()
     
-    if not node or not verify_password(req.hardware_secret, node.hashed_secret):
+    if not node or not verify_password(req.hardware_secret, node.hashed_secret):  # type: ignore[arg-type]
         logger.warning("Failed authentication attempt", node_id=req.node_id)
         raise HTTPException(status_code=401, detail="Invalid hardware secret or node ID")
         

@@ -2,7 +2,7 @@ import os
 from datetime import UTC, datetime, timedelta
 
 import jwt
-from passlib.context import CryptContext
+from passlib.context import CryptContext  # type: ignore[import-untyped]
 
 JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-zero-trust-key-for-dev")
 ALGORITHM = "HS256"
@@ -11,10 +11,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)  # type: ignore[no-any-return]
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    return pwd_context.hash(password)  # type: ignore[no-any-return]
 
 def create_access_token(data: dict[str, str], expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
