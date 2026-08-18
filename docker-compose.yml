@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  security_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://user:password@db/security
+      - JWT_SECRET=super-secret-production-key-here
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=security
+    ports:
+      - "5433:5432"
