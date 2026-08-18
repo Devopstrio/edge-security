@@ -1,4 +1,5 @@
 import os
+from typing import Any
 from datetime import UTC, datetime, timedelta
 
 import bcrypt
@@ -15,14 +16,14 @@ def get_password_hash(password: str) -> str:
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-def create_access_token(data: dict[str, str], expires_delta: timedelta | None = None) -> str:
+def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     expire = datetime.now(UTC) + expires_delta if expires_delta else datetime.now(UTC) + timedelta(minutes=15)
-    to_encode.update({"exp": str(expire.timestamp())})
+    to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=ALGORITHM)
     return encoded_jwt
 
-def decode_access_token(token: str) -> dict[str, str]:
+def decode_access_token(token: str) -> dict[str, Any]:
     try:
         decoded_token = jwt.decode(token, JWT_SECRET, algorithms=[ALGORITHM])
         return decoded_token
