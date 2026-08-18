@@ -1,8 +1,8 @@
 import os
 from datetime import UTC, datetime, timedelta
 
-import jwt
 import bcrypt
+import jwt
 
 JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-zero-trust-key-for-dev")
 ALGORITHM = "HS256"
