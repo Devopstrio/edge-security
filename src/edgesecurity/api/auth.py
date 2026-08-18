@@ -4,6 +4,7 @@ from datetime import timedelta
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from edgesecurity.core.security import (
@@ -86,10 +87,13 @@ async def generate_api_key(req: APIKeyCreateRequest, db: AsyncSession = Depends(
 # Utility for tests to seed a node secret
 @router.post("/_internal/seed-node", include_in_schema=False)
 async def seed_node(node_id: str, raw_secret: str, db: AsyncSession = Depends(get_db)) -> dict[str, str]:  # noqa: B008
-    new_node = EdgeNodeSecret(
-        node_id=node_id,
-        hashed_secret=get_password_hash(raw_secret)
-    )
-    db.add(new_node)
-    await db.commit()
+    try:
+        new_node = EdgeNodeSecret(
+            node_id=node_id,
+            hashed_secret=get_password_hash(raw_secret)
+        )
+        db.add(new_node)
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
     return {"status": "seeded"}
